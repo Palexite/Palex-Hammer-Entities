@@ -1,0 +1,308 @@
+@include "base.fgd"
+@include "halflife2.fgd"
+@include "hl2mp.fgd"
+
+@PointClass base(Targetname) iconsprite("editor/logic_physics.vmt") = logic_physics : "Manipulates physics directly within the world." 
+[
+	velocityrandom(float)		: "Velocity Randomness" 		: "0"		: "allows the velocity to be adjusted randomly, providing unique trajectories for each use."
+
+	spawnflags(flags) =
+	[
+		1 : "Use Force Instead of Velocity"       : 0
+	]
+	// Inputs -- Strings because they include multiple arguments. @ is used to seperate arguments within the parameter line. Game translates it from there.
+	input setvelocity(string) : "SetVelocity" 								// String(Targetname)@Vector(Velocity)
+	input setangvelocity(string) : "SetAngularVelocity"							// String(Targetname)@Vector(AngularVelocity)
+	input setgravity(string) : "SetGravity"									// String(Targetname)@Number(Gravity)
+	input setfriction(string) : "SetFriction"								// String(Targetname)@Number(Friction)
+]
+
+@PointClass base(Targetname, Angles, Parentname) studioprop("models/editor/camera.mdl") = point_viewcontrol_multiplayer_advanced : "Similiar to point_viewcontrol_multiplayer except with more capabilities, such as player perspective transitions."
+[
+	transtime(float) : "From POV Transition Time"  : "0" : "Time to transition FROM the Players POV. Set to zero to make it instant (no transition)."
+
+	transtimefunc(choices) : "From Player POV Function"  : "OutSine" : "Uses this math.ease function to transition from player POV." =
+	[
+		"InBack" : "InBack"
+		"InBounce" : "InBounce"
+		"InCirc" : "InCirc"
+		"InCubic" : "InCubic"
+		"InElastic" : "InElastic"
+		"InExpo" : "InExpo"
+		"InOutBack" : "InOutBack"
+		"InOutBounce" : "InOutBounce"
+		"InOutCirc" : "InOutCirc"
+		"InOutCubic" : "InOutCubic"
+		"InOutElastic" : "InOutElastic"
+		"InOutExpo" : "InOutExpo"
+		"InOutQuad" : "InOutQuad"
+		"InOutQuart" : "InOutQuart"
+		"InOutQuint" : "InOutQuint"
+		"InOutSine" : "InOutSine"
+		"InQuad" : "InQuad"
+		"InQuart" : "InQuart"
+		"InQuint" : "InQuint"
+		"InSine" : "InSine"
+		"OutBack" : "OutBack"
+		"OutBounce" : "OutBounce"
+		"OutCirc" : "OutCirc"
+		"OutCubic" : "OutCubic"
+		"OutElastic" : "OutElastic"
+		"OutExpo" : "OutExpo"
+		"OutQuad" : "OutQuad"
+		"OutQuart" : "OutQuart"
+		"OutQuint" : "OutQuint"
+		"OutSine" : "OutSine"
+	]
+
+	playerpovtranstime(float) : "To POV Transition Time"  : "0" : "Time to transition TO the players POV. Set to zero to make it instant (no transition)."
+
+	playerpovtransfunc(choices) : "To Player POV Function"  : "OutSine" : "Uses this math.ease function to transition to player POV." =
+	[
+		"InBack" : "InBack"
+		"InBounce" : "InBounce"
+		"InCirc" : "InCirc"
+		"InCubic" : "InCubic"
+		"InElastic" : "InElastic"
+		"InExpo" : "InExpo"
+		"InOutBack" : "InOutBack"
+		"InOutBounce" : "InOutBounce"
+		"InOutCirc" : "InOutCirc"
+		"InOutCubic" : "InOutCubic"
+		"InOutElastic" : "InOutElastic"
+		"InOutExpo" : "InOutExpo"
+		"InOutQuad" : "InOutQuad"
+		"InOutQuart" : "InOutQuart"
+		"InOutQuint" : "InOutQuint"
+		"InOutSine" : "InOutSine"
+		"InQuad" : "InQuad"
+		"InQuart" : "InQuart"
+		"InQuint" : "InQuint"
+		"InSine" : "InSine"
+		"OutBack" : "OutBack"
+		"OutBounce" : "OutBounce"
+		"OutCirc" : "OutCirc"
+		"OutCubic" : "OutCubic"
+		"OutElastic" : "OutElastic"
+		"OutExpo" : "OutExpo"
+		"OutQuad" : "OutQuad"
+		"OutQuart" : "OutQuart"
+		"OutQuint" : "OutQuint"
+		"OutSine" : "OutSine"
+	]
+	fov_rate(float) : "FOV Rate"  : "0" : "How quickly FOV changes."
+	fov_target(float) : "FOV Target"  : "90" : "What to change the FOV to."
+	vmdist(float) : "ViewModel Distance" : "32" : "The distance from thecamera in which the viewmodel of the players should be rendered."
+	stopinput(boolean) : "Stop Input" : "0" : "Should we stop the players from moving when they enter this view control?"
+
+	input EnableForAll(void) : "Make every player view through this view control."
+	input DisableForAll(void) : "Release every player from this view control."
+	input EnableForSelect(string) : "Enables only for a certain player. (use !Activator or !Caller)"
+	input DisableForSelect(string) : "Release every player from this view control. (Use !Activator or !Caller)"
+	input SetStopInput(integer) : "Should we stop the players from moving when they enter this view control?"
+	input SetFOVTarget(integer) : "Sets the FOV we are targetting for."
+	input SetFOVRate(integer) : "Sets the FOV Rate we are targetting for."
+]
+
+@PointClass base(Targetname, Parentname, Origin, Angles, EnableDisable) studio("models/editor/playerstart.mdl") = point_playercontrol : "Allows manipulating a select player's character as if it were part of the map."
+[
+animbrate(integer) : "Animation Playback Rate" : 1 : "The speed of the animation the player plays."
+blockedinputs(integer) : "Outputted Player Inputs" : 0 : "List of IN_ inputs represented as a single bitwise integer that will be considered as an output to this entity. use this site for reference: https://wiki.facepunch.com/gmod/Enums/IN."
+inputregister(integer) : "Registered Player Inputs" : 0 : "List of IN_ inputs represented as a single bitwise integer that will determine what player inputs are registered by the game. use this site for reference: https://wiki.facepunch.com/gmod/Enums/IN."
+clearmovement(boolean) : "Clear Player Movement" : 1 : "Whether to stop the player from controlling their own movement."
+gotopos(boolean) : "Player Goes To This Entity" : 0 : "Makes the player move to this entity."
+acceptrange(integer) : "Acceptance Range" : 16 : "The range in which the player no longer has to keep moving toward this entity. Setting it to zero will cause the player to shake. *Requires Player Goes To This Entity to be true."
+desiredspeed(integer) : "Desired Speed" : 128 : "The desired speed in which the player may move towards us."
+faceangles(boolean) : "Player Faces Entity's Angles" : 0 : "Makes the player's angles match this entity's angles."
+freezeplayer(boolean) : "Freeze Players" : 0 : "Makes the player frozen. This will disable their gravity and movement, but will allow them to look around and trigger input calls, as well as take damage. This also means its not compatible with Player Goes To This Entity"
+
+output OnATTACK(void) : "Fired when the player presses the primary attack bind."
+output OnATTACK2(void) : "Fired when the player presses the secondary attack bind."
+output OnJUMP(void) : "Fired when the player presses the jump bind."
+output OnDUCK(void) : "Fired when the player presses the jump bind."
+output OnFORWARD(void) : "Fired when the player presses the forward bind."
+output OnMOVELEFT(void) : "Fired when the player presses the move left bind."
+output OnMOVERIGHT(void) : "Fired when the player presses the move right bind."
+output OnBACK(void) : "Fired when the player presses the back bind."
+output OnSPEED(void) : "Fired when the player presses the speed (used typically as run) bind."
+output OnUSE(void) : "Fired when the player presses the use bind."
+output OnRELOAD(void) : "Fired when the player presses the reload bind."
+output OnWEAPON1(void) : "Fired when the player presses the alt1 bind."
+output OnWEAPON2(void) : "Fired when the player presses the alt1 bind."
+output OnSCORE(void) : "Fired when the player presses the walk bind."
+output OnWALK(void) : "Fired when the player presses the walk bind."
+output OnPlayerDeath(void) : "Fired when the player dies."
+output OnPlayerHurt(void) : "Fired when the player is hurt."
+
+input AddPlayer(string) : "Adds a player to control over. (Use !Activator)"
+input AddAllPlayers(void) : "Adds all players to this entity's control."
+input ReleasePlayer(string) : "Remove a player to control over. (Use !Activator)"
+input ReleaseAllPlayers(void) : "Removes all players from this entity's control."
+input SetGoToPos(integer) : "Makes the player move toward this position."
+input SetShouldFaceDirection(integer) : "Makes the player face the same direction as this entity."
+input SetActivity(string) : "set the player's currently played animation"
+input SetAnimPlaybackRate(string) : "set the player's currently played animation"
+input SetOutputInputs(integer) : "sets the inputs that are considered by this entity's inputs."
+input SetRegisteredInputs(integer) : "sets the inputs that are passed at all by the game."
+input HurtPlayer(integer) : "Hurts the player by this amount."
+input SetMoveAcceptRange(integer) : "The player may stop moving towards us once they're within this range."
+input SetMoveDesiredSpeed(integer) : "The desired speed in which the player should move toward this entity."
+input KillPlayer(void) : "Kills the players."
+input SetPlayersWeapon(string) : "Sets the players currently held weapon."
+input ClearPlayersMovement(integer) : "Whether to clear the player's movement or not."
+input SetFreezePlayer(integer) : "Whether the player should be frozen upon being subjected. This also applies to current subjects."
+]
+
+@PointClass base(Targetname, EnableDisable) iconsprite("editor/env_musicplayer.vmt") = env_musicplayer : "an entity that uses the gmodaudiochannel library in a way designed for dynamic music."
+[
+	track(string) : "Track" : "Example" : "The initial track to play. This is defined in emp_dictionary stored inside lua/entities/env_musicplayer."
+	subtracks(integer) : "Sub Tracks" : 31 : "Individual Sub Tracks of the Track to play treated as a bitwise integer."
+	lyrics(boolean) : "Enable Lyrics" : 0 : "Whether to add a UI showing the lyrics of the music."
+	targetvolume(integer) : "Target Volume" : 1 : "The volume that we aim to reach within the Volume Change Duration."
+	volumechangeduration(integer) : "Volume Change Duration" : 1 : "In seconds when to reach the target volume following it's ease function."
+		volumechangefunc(choices) : "Volume Change Function"  : "InOutSine" : "Uses this math.ease function to transition between different audio volumes."
+		= [
+		"InBack" : "InBack"
+		"InBounce" : "InBounce"
+		"InCirc" : "InCirc"
+		"InCubic" : "InCubic"
+		"InElastic" : "InElastic"
+		"InExpo" : "InExpo"
+		"InOutBack" : "InOutBack"
+		"InOutBounce" : "InOutBounce"
+		"InOutCirc" : "InOutCirc"
+		"InOutCubic" : "InOutCubic"
+		"InOutElastic" : "InOutElastic"
+		"InOutExpo" : "InOutExpo"
+		"InOutQuad" : "InOutQuad"
+		"InOutQuart" : "InOutQuart"
+		"InOutQuint" : "InOutQuint"
+		"InOutSine" : "InOutSine"
+		"InQuad" : "InQuad"
+		"InQuart" : "InQuart"
+		"InQuint" : "InQuint"
+		"InSine" : "InSine"
+		"OutBack" : "OutBack"
+		"OutBounce" : "OutBounce"
+		"OutCirc" : "OutCirc"
+		"OutElastic" : "OutElastic"
+		"OutExpo" : "OutExpo"
+		"OutQuad" : "OutQuad"
+		"OutQuart" : "OutQuart"
+		"OutQuint" : "OutQuint"
+		"OutSine" : "OutSine"
+		]
+		loop(boolean) : "Loop" : 0 : "Whether to loop the music."
+		loopstart(integer) : "Loop Start" : 0 : "The start of the loop."
+		loopend(integer) : "Loop End" : 16 : "The end of the loop."
+		loopfade(integer) : "Loop Fade" : 0 : "How long the loop should fade from LoopEnd back To LoopStart."
+
+		togglefx(integer) : "Toggle Effect" : 1 : "How the audio should be treated upon enabling or disabling treated as a bitwise integer. bit 1 = fading, bit 2 = speedshifting"
+
+		input SetTrack(string) : "Sets the Track."
+		input SetSubTracks(integer) : "Sets which subtracks to play as a bitwise integer."
+		input SetTime(integer) : "Sets the music at this time."
+		input SnapToNode(string) : "Sets the music at this node."
+		input SetTargetVolume(string) : "Sets the target volume."
+		input SetVolumeFunction(string) : "Sets the volume function."
+		input SetLyricsEnabled(integer) : "Whether to have lyrics."
+		input SetLooping(integer) : "Whether to loop the audio."
+		input SetLoopStart(integer) : "Where the loop should wrap around to."
+		input SetLoopEnd(integer) : "When the loop should loop around."
+	]
+
+@PointClass base(Targetname, Studiomodel) studioprop() = point_anmdummy : "Loads custom animations into gmod's utility library for the client."
+[
+	input CacheModel(void) : "Manually caches the models animations."
+	input SetModel(string) : "Manually sets the model during runtime."
+]
+
+@PointClass base(Targetname, Parentname, Origin, Angles) iconsprite("editor/env_shake_dynamic.vmt") = env_shake_dynamic : "Custom designed shake effects with more functionality."
+[
+	linearamp(vector) : "Linear Amplitude" : "4 4 4" : "How much the camera shakes in terms of it's seperate positional elements. "
+	angularamp(vector) : "Angular Amplitude" : "2 2 2" : "How much the camera shakes in terms of it's seperate angles."
+	frequency(integer) : "Frequency" : 2 : "How much the camera shakes throughout time."
+	duration(integer) : "Duration" : 2 : "How long the shake lasts in seconds."
+	radius(integer) : "Radius" : 512 : "How far the camera shakes."
+	engine(choices) : "Engine" : "SDKReplica" : "Which shake function to use. SDKReplica is an exact replica of Source Engine's default util.Screenshake(). You can design your own in lua/autorun/dynamotion_preview.lua, You'll need some understanding of lua though."
+		= [
+		"SDKReplica" : "SDKReplica"
+	]
+
+	maxphysics(integer) : "Max Physics Objects" : 16 : "The maximum number of physics objects that can be affected by this entity. This is helpful for saving server resources and mitigating crashes."
+	maxcorrections(integer) : "Max Physics Corrections" : 1 : "How many physics objects can be affected each tick."
+	tickduration(integer) : "Physics Tick Duration" : 1 : "the duration in seconds until the next tick. (For Physics Only)"
+
+	input StartDynamicShake(string) : "Starts a shake but with the given parameters. This requires MULTIPLE parameters. The format is this <String> Engine@ <Vector> LinearAmplitude@ <Vector> AngularAmplitude@ <int> Frequency@ <int> Duration@ <int> Radius@"
+	input StartShake(void) : "Starts a shake with the built-in key values of the entity."
+	input StartPhysicsShake(void) : "Starts server-sided physics shake."
+]
+
+@PointClass base(Targetname, Parentname, Origin, Angles) = logic_playerevaluator : "An entity designed to evaluate statistics of the player for mathematical operations."
+[
+	principle(choices) : "Principle" : "Speed" : "What should be evaluated from the player."
+	= [
+	"Speed" : "Speed"
+	"MaxSpeed" : "MaxSpeed"
+	"Health" : "Health"
+	"MaxHealth" : "MaxHealth"
+	"JumpPower" : "JumpPower"
+	"Scale" : "Scale"
+	"ViewPunch" : "ViewPunch"
+	"Frags" : "Frags"
+	"Armor" : "Armor"
+	]
+	showui(boolean) : "Show UI" : 0 : "Whether or not to show the UI of the evaluator. This is seperate from the progress bar." 
+	showpb(boolean) : "Show Progress Bar" : 0 : "Whether or not to show a progress bar. Useful for task-like stuff that is being used by the evaluator." 
+	localizeui(boolean) : "Localize UI" : 0 : "Whether or not the user interface should only be rendered for the player being evaluated."
+	uiscale(integer) : "UI Scale" : 1 : "Scale of the user interface."
+	bar(integer) : "Bar" : 100 : "Used to determine whether the value of the player is considered positive or negative."
+	barmargin(integer) : "Neutrality" : 25 : "The margin in which the value of the player is not considered positive or negative."
+	maxprogress(integer) : "Max Progress" : 100 : "The maximum progress to use for the progress bar."
+
+	input SetPlayerUsingActivator(void) : "Sets the player we're evaluating."
+	input SetPrinciple(string) : "Sets what we're evaluating."
+	input GetValue(void) : "Makes this entity fire it's OnGetValue output for it's value to be retrieved. This can be done by leaving the Parameter field blank during an Output."
+	input SetShowProgressBar(integer) : "Whether or not to show the progress bar. Useful for task-like stuff that is being used by the evaluator."
+	input SetShowUI(integer) : "Whether or not to show the UI."
+	input SetShowBar(integer) : "Sets where exactly the players status is either positive or negative."
+	input SetMargin(integer) : "Sets the marginality of the Bar."
+	input SetUIScale(integer) : "Sets the scale of the UI."
+	input SetProgress(integer) : "Sets the progress of the progress bar."
+	input SetMaxProgress(integer) : "Sets the maximum progress of the progress bar."
+
+	output OnNegative(void) : "When the value turns up negative."
+	output OnPositive(void) : "when the value turns up positive." 
+	output OnNeutral(void) :  "When the value turns up neutral."
+
+	output OnGetValue(integer) : "When the GetValue() input is called. This is where you get to use the value by having the parameter field be blank."
+]
+
+@PointClass base(Targetname, Parentname, EnableDisable) = env_qte : "An entity that Adds Quick Time Events which appear to a specific player. Does not consume inputs, so its recommended with point_playercontrol."
+[
+ui(string) : "UI Style" : "qte_zombiesurvival" : "Which QTE UI to use. These are located in lua/vgui/. 'qte_zombiesurvival' is a valid option."
+keypress(string) : "Key" : "E" : "Which Key is represented in the QTE. Do note that QTE vguis can interpret this differently depending on the key. (E.G: using a spacebar icon instead of spaced text.)"
+scale(integer) : "UI Scale" : 1 : "The visual scale of the QTE."
+offset(vector) : "UI Offset" : "0 0 0" : "The visual offset of the QTE."
+locktoscreen(boolean) : "Lock To Player's Screen" : 1 : "Causes the UI element to be attached to the player's screen. NOTE: This is still in 3D space but is treated AS IF it were a 2D panel."
+locktodirection(boolean) : "Lock To Player's Direction" : 1 : "Causes the UI element to always face the LocalPlayer."
+ignorez(boolean) : "Ignore Z" : 1 : "Causes the UI element to always render on top of everything else."
+
+input Success(void) : "Causes a success animation to be played and the QTE dismissed."
+input Fail(void) : "Causes a Fail animation to be played and the QTE dismissed."
+input SetKey(string) : "Sets the key to be used for the QTE."
+input LockToScreen(integer) : "Whether or not to lock the UI to the player's screen."
+input LockToPlayerDirection(integer) : "Whether or not to lock the UI to the player's direction."
+input SetPlayerViaActivator(void) : "Sets the player that will see this QTE using the relevant activator of the input."
+input ReleasePlayer(void) : "Releases the player so they will no longer see this QTE."
+input SetIgnoreZ(integer) : "Whether or not to render the UI on top of everything else."
+input SetScale(integer) : "The scale of the UI."
+input SetOffset(vector) : "Sets the QTE Offset."
+
+output OnSuccess(void) : "On Success."
+output OnFail(void) : "On Fail."
+]
+
+
+
+
